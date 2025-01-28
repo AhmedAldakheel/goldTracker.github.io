@@ -1,11 +1,15 @@
+import os
+import time
 from flask import Flask, jsonify, render_template
 from flask_cors import CORS
 import requests
 from bs4 import BeautifulSoup
-import os
+from datetime import datetime
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
+
+profit_archive = []  # قائمة لتخزين الأرباح والخسائر (آخر 20 عملية فقط)
 
 @app.route('/get-gold-prices', methods=['GET'])
 def get_gold_prices():
@@ -30,7 +34,33 @@ def get_gold_prices():
         if gold_oz is None or gold_20g is None:
             raise ValueError("Failed to extract gold prices.")
 
-        return jsonify({"gold_oz": gold_oz, "gold_20g": gold_20g})
+        # أسعار الشراء الثابتة
+        buy_price_oz = 1032
+        buy_price_20g = 661
+
+        # حساب الربح/الخسارة
+        profit_loss_oz = gold_oz - buy_price_oz
+        profit_loss_20g = gold_20g - buy_price_20g
+        total_profit_loss = profit_loss_oz + profit_loss_20g
+
+        # تسجيل البيانات في الأرشيف مع الوقت
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        profit_archive.append({
+            "timestamp": timestamp,
+            "profit_loss_oz": round(profit_loss_oz, 2),
+            "profit_loss_20g": round(profit_loss_20g, 2),
+            "total_profit_loss": round(total_profit_loss, 2)
+        })
+
+        # الاحتفاظ فقط بآخر 20 عملية
+        if len(profit_archive) > 20:
+            profit_archive.pop(0)
+
+        return jsonify({
+            "gold_oz": gold_oz,
+            "gold_20g": gold_20g,
+            "profit_archive": profit_archive
+        })
     except Exception as e:
         return jsonify({"error": "Failed to fetch gold prices", "details": str(e)}), 500
 

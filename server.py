@@ -1,15 +1,17 @@
 import os
+import requests
 import time
 from flask import Flask, jsonify, render_template
 from flask_cors import CORS
-import requests
 from bs4 import BeautifulSoup
 from datetime import datetime
+import pytz  # مكتبة ضبط التوقيت
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
 
-profit_archive = []  # قائمة لتخزين الأرباح والخسائر (آخر 20 عملية فقط)
+# تخزين آخر 20 عملية فقط
+profit_archive = []
 
 @app.route('/get-gold-prices', methods=['GET'])
 def get_gold_prices():
@@ -43,8 +45,11 @@ def get_gold_prices():
         profit_loss_20g = gold_20g - buy_price_20g
         total_profit_loss = profit_loss_oz + profit_loss_20g
 
-        # تسجيل البيانات في الأرشيف مع الوقت
-        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        # ضبط التوقيت ليكون بتوقيت البحرين
+        bahrain_tz = pytz.timezone("Asia/Bahrain")
+        timestamp = datetime.now(bahrain_tz).strftime("%Y-%m-%d %H:%M:%S")
+
+        # حفظ الأرشيف مع التوقيت الجديد
         profit_archive.append({
             "timestamp": timestamp,
             "profit_loss_oz": round(profit_loss_oz, 2),

@@ -1,6 +1,6 @@
 async function fetchGoldPrices() {
     try {
-        const response = await fetch('https://your-app.onrender.com/get-gold-prices');
+        const response = await fetch('https://goldtracker-github-io-1.onrender.com/get-gold-prices');
         if (!response.ok) {
             throw new Error(`HTTP error! Status: ${response.status}`);
         }

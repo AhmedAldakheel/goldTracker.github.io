@@ -1,29 +1,49 @@
 async function fetchGoldPrices() {
     try {
-        const response = await fetch('https://goldtracker-github-io-1.onrender.com/get-gold-prices');
+        const response = await fetch('https://goldtracker-github-io-1.onrender.com/get-gold-prices', { mode: 'cors' });
         if (!response.ok) {
             throw new Error(`HTTP error! Status: ${response.status}`);
         }
         const data = await response.json();
 
         // تحديث بيانات الأسعار في الصفحة
-        document.getElementById('goldOz').textContent = data.gold_oz.toFixed(2);
-        document.getElementById('gold20g').textContent = data.gold_20g.toFixed(2);
+        const goldOzElement = document.getElementById('goldOz');
+        const gold20gElement = document.getElementById('gold20g');
+        const messageElement = document.getElementById('message');
+
+        if (goldOzElement && gold20gElement) {
+            goldOzElement.textContent = data.gold_oz.toFixed(2);
+            gold20gElement.textContent = data.gold_20g.toFixed(2);
+        }
 
         // تحديث الأرشيف إذا كان متاحًا
         if (data.profit_archive) {
             updateProfitHistory(data.profit_archive);
         }
+
+        if (messageElement) {
+            messageElement.textContent = ''; // إزالة رسالة الفشل عند النجاح
+        }
     } catch (error) {
         console.error('Error fetching gold prices:', error);
-        document.getElementById('message').textContent = 'Failed to load prices.';
+
+        // تحديث الرسائل عند الفشل
+        const messageElement = document.getElementById('message');
+        if (messageElement) {
+            messageElement.textContent = 'Failed to load prices.';
+        }
     }
 }
 
 // تحديث جدول الأرشيف
 function updateProfitHistory(profitHistory) {
     const profitHistoryTable = document.getElementById('profitHistory');
-    profitHistoryTable.innerHTML = '';
+    if (!profitHistoryTable) {
+        console.error('Profit history table is missing.');
+        return;
+    }
+
+    profitHistoryTable.innerHTML = ''; // تفريغ الجدول قبل التحديث
 
     if (profitHistory.length > 0) {
         profitHistory.forEach(record => {

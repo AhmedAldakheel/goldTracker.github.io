@@ -1,17 +1,13 @@
 import os
 import requests
-import time
 from flask import Flask, jsonify, render_template
 from flask_cors import CORS
 from bs4 import BeautifulSoup
 from datetime import datetime
-import pytz  # مكتبة ضبط التوقيت
+import pytz
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
-
-# تخزين آخر 20 عملية فقط
-profit_archive = []
 
 @app.route('/get-gold-prices', methods=['GET'])
 def get_gold_prices():
@@ -49,22 +45,12 @@ def get_gold_prices():
         bahrain_tz = pytz.timezone("Asia/Bahrain")
         timestamp = datetime.now(bahrain_tz).strftime("%Y-%m-%d %H:%M:%S")
 
-        # حفظ الأرشيف مع التوقيت الجديد
-        profit_archive.append({
-            "timestamp": timestamp,
-            "profit_loss_oz": round(profit_loss_oz, 2),
-            "profit_loss_20g": round(profit_loss_20g, 2),
-            "total_profit_loss": round(total_profit_loss, 2)
-        })
-
-        # الاحتفاظ فقط بآخر 20 عملية
-        if len(profit_archive) > 20:
-            profit_archive.pop(0)
-
         return jsonify({
             "gold_oz": gold_oz,
             "gold_20g": gold_20g,
-            "profit_archive": profit_archive
+            "profit_loss_oz": round(profit_loss_oz, 2),
+            "profit_loss_20g": round(profit_loss_20g, 2),
+            "total_profit_loss": round(total_profit_loss, 2)
         })
     except Exception as e:
         return jsonify({"error": "Failed to fetch gold prices", "details": str(e)}), 500

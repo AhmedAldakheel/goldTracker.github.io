@@ -1,7 +1,7 @@
 async function fetchGoldPrices() {
     try {
         // إرسال الطلب إلى API للحصول على أسعار الذهب
-        const response = await fetch('https://your-app.onrender.com/get-gold-prices', {
+        const response = await fetch('https://goldtracker-github-io-1.onrender.com/get-gold-prices', {
             method: 'GET', // تحديد الطريقة GET
             headers: {
                 'Content-Type': 'application/json', // تحديد نوع المحتوى إلى JSON

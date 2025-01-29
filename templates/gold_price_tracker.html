@@ -1,9 +1,10 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    <script src="script.js"></script>
     <title>Gold Price Tracker</title>
     <style>
         body {
@@ -11,23 +12,36 @@
             color: #ffffff;
             font-family: Arial, sans-serif;
             margin: 0;
-            padding: 20px;
-            text-align: center;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
         }
         .container {
-            max-width: 600px;
-            margin: auto;
+            text-align: center;
+            max-width: 500px;
             padding: 20px;
+            border: 1px solid #333;
             border-radius: 10px;
-            background-color: #1e1e1e;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            background-color: #1e1e1e;
         }
         h1 {
             color: #f9a825;
+            margin-bottom: 20px;
         }
         .price, .purchase, .result {
             font-size: 1.2rem;
             margin: 10px 0;
+        }
+        .price span, .purchase span, .result span {
+            font-weight: bold;
+            color: #f9a825;
+        }
+        .result {
+            margin-top: 20px;
+            font-size: 1.3rem;
         }
         .profit {
             color: #4caf50;
@@ -39,55 +53,56 @@
 </head>
 <body>
     <div class="container">
-        <h1>Gold Price Tracker v0.9</h1>
-        <p class="price">Current Gold (1 oz): <span id="goldOz">Loading...</span> BHD</p>
-        <p class="price">Current Gold (20g): <span id="gold20g">Loading...</span> BHD</p>
-        <p class="purchase">Purchase Price (1 oz): <span>1023</span> BHD</p>
-        <p class="purchase">Purchase Price (20g): <span>661</span> BHD</p>
-        <p class="result" id="profitLoss">Calculating...</p>
+        <h1>Gold Price Tracker</h1>
+        <div id="goldPrices">
+            <p class="price">Current Gold (1 oz): <span id="goldOz">Loading...</span> BHD</p>
+            <p class="price">Current Gold (20g): <span id="gold20g">Loading...</span> BHD</p>
+        </div>
+        <div id="purchasePrices">
+            <p class="purchase">Purchase Price (1 oz): <span id="buyPriceOz">1023</span> BHD</p>
+            <p class="purchase">Purchase Price (20g): <span id="buyPrice20g">661</span> BHD</p>
+        </div>
+        <div class="result" id="profitLoss">Calculating...</div>
     </div>
 
     <script>
         async function fetchGoldPrices() {
             try {
-                const response = await fetch('https://your-app.onrender.com/get-gold-prices');
+                const response = await fetch('http://127.0.0.1:5000/get-gold-prices');
                 if (!response.ok) {
                     throw new Error(`HTTP error! Status: ${response.status}`);
                 }
                 const data = await response.json();
-                console.log('Fetched data:', data);
 
-                // تحديث أسعار الذهب
-                if (!isNaN(data.gold_oz)) {
-                    document.getElementById('goldOz').textContent = data.gold_oz.toFixed(2);
+                const goldOz = data.gold_oz;
+                const gold20g = data.gold_20g;
+
+                document.getElementById('goldOz').textContent = goldOz.toFixed(2);
+                document.getElementById('gold20g').textContent = gold20g.toFixed(2);
+
+                const buyPriceOz = parseFloat(document.getElementById('buyPriceOz').textContent);
+                const buyPrice20g = parseFloat(document.getElementById('buyPrice20g').textContent);
+
+                const profitLossOz = goldOz - buyPriceOz;
+                const profitLoss20g = gold20g - buyPrice20g;
+
+                const totalProfitLoss = profitLossOz + profitLoss20g;
+                const resultDiv = document.getElementById('profitLoss');
+
+                if (totalProfitLoss > 0) {
+                    resultDiv.textContent = `Profit: ${totalProfitLoss.toFixed(2)} BHD`;
+                    resultDiv.className = 'result profit';
                 } else {
-                    document.getElementById('goldOz').textContent = 'N/A';
-                }
-
-                if (!isNaN(data.gold_20g)) {
-                    document.getElementById('gold20g').textContent = data.gold_20g.toFixed(2);
-                } else {
-                    document.getElementById('gold20g').textContent = 'N/A';
-                }
-
-                // إزالة رسالة الخطأ
-                const messageElement = document.getElementById('message');
-                if (messageElement) {
-                    messageElement.textContent = '';
+                    resultDiv.textContent = `Loss: ${Math.abs(totalProfitLoss).toFixed(2)} BHD`;
+                    resultDiv.className = 'result loss';
                 }
             } catch (error) {
                 console.error('Error fetching gold prices:', error);
-
-                // عرض رسالة الخطأ
-                const messageElement = document.getElementById('message');
-                if (messageElement) {
-                    messageElement.textContent = 'Failed to load prices.';
-                }
+                document.getElementById('goldPrices').textContent = 'Failed to load prices.';
             }
         }
 
         fetchGoldPrices();
-        setInterval(fetchGoldPrices, 43200000); // تحديث كل 12 ساعة
     </script>
 </body>
 </html>

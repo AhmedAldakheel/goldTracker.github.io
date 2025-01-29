@@ -37,7 +37,7 @@ def get_gold_prices():
             raise ValueError("Failed to extract gold prices.")
 
         # أسعار الشراء الثابتة
-        buy_price_oz = 1032
+        buy_price_oz = 1023
         buy_price_20g = 661
 
         # حساب الربح/الخسارة

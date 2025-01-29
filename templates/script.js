@@ -1,33 +1,41 @@
 async function fetchGoldPrices() {
     try {
-        const response = await fetch('https://goldtracker-github-io-1.onrender.com/get-gold-prices', { mode: 'cors' });
+        const response = await fetch('https://goldtracker-github-io-1.onrender.com/get-gold-prices');
         if (!response.ok) {
             throw new Error(`HTTP error! Status: ${response.status}`);
         }
         const data = await response.json();
+        console.log('Fetched data:', data);
 
-        // تحديث بيانات الأسعار في الصفحة
-        const goldOzElement = document.getElementById('goldOz');
-        const gold20gElement = document.getElementById('gold20g');
-        const messageElement = document.getElementById('message');
-
-        if (goldOzElement && gold20gElement) {
-            goldOzElement.textContent = data.gold_oz.toFixed(2);
-            gold20gElement.textContent = data.gold_20g.toFixed(2);
+        // تحديث أسعار الذهب
+        if (!isNaN(data.gold_oz)) {
+            document.getElementById('goldOz').textContent = data.gold_oz.toFixed(2);
+        } else {
+            document.getElementById('goldOz').textContent = 'N/A';
         }
 
-        // تحديث الأرشيف إذا كان متاحًا
-        if (data.profit_archive) {
+        if (!isNaN(data.gold_20g)) {
+            document.getElementById('gold20g').textContent = data.gold_20g.toFixed(2);
+        } else {
+            document.getElementById('gold20g').textContent = 'N/A';
+        }
+
+        // تحديث الأرشيف
+        if (data.profit_archive && Array.isArray(data.profit_archive)) {
             updateProfitHistory(data.profit_archive);
+        } else {
+            console.error('Profit archive is missing or not an array.');
         }
 
+        // إزالة رسالة الخطأ
+        const messageElement = document.getElementById('message');
         if (messageElement) {
-            messageElement.textContent = ''; // إزالة رسالة الفشل عند النجاح
+            messageElement.textContent = '';
         }
     } catch (error) {
         console.error('Error fetching gold prices:', error);
 
-        // تحديث الرسائل عند الفشل
+        // عرض رسالة الخطأ
         const messageElement = document.getElementById('message');
         if (messageElement) {
             messageElement.textContent = 'Failed to load prices.';
@@ -35,7 +43,6 @@ async function fetchGoldPrices() {
     }
 }
 
-// تحديث جدول الأرشيف
 function updateProfitHistory(profitHistory) {
     const profitHistoryTable = document.getElementById('profitHistory');
     if (!profitHistoryTable) {
@@ -43,7 +50,7 @@ function updateProfitHistory(profitHistory) {
         return;
     }
 
-    profitHistoryTable.innerHTML = ''; // تفريغ الجدول قبل التحديث
+    profitHistoryTable.innerHTML = ''; // تفريغ الجدول
 
     if (profitHistory.length > 0) {
         profitHistory.forEach(record => {
@@ -63,5 +70,5 @@ function updateProfitHistory(profitHistory) {
 // جلب البيانات عند تحميل الصفحة
 fetchGoldPrices();
 
-// تحديث البيانات كل 12 ساعة (43200000 ميلي ثانية)
+// تحديث البيانات كل 12 ساعة
 setInterval(fetchGoldPrices, 43200000);

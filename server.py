@@ -5,9 +5,11 @@ from flask_cors import CORS
 from bs4 import BeautifulSoup
 from datetime import datetime
 import pytz
+CORS(app, resources={r"/*": {"origins": "*"}})
+
+
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "*"}})
 
 @app.route('/get-gold-prices', methods=['GET'])
 def get_gold_prices():

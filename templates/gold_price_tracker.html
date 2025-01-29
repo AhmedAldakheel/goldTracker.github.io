@@ -35,44 +35,16 @@
         .loss {
             color: #f44336;
         }
-        table {
-            width: 100%;
-            margin-top: 20px;
-            border-collapse: collapse;
-        }
-        th, td {
-            border: 1px solid #666;
-            padding: 8px;
-            text-align: center;
-        }
-        th {
-            background-color: #444;
-        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Gold Price Tracker v0.8</h1>
+        <h1>Gold Price Tracker v0.9</h1>
         <p class="price">Current Gold (1 oz): <span id="goldOz">Loading...</span> BHD</p>
         <p class="price">Current Gold (20g): <span id="gold20g">Loading...</span> BHD</p>
         <p class="purchase">Purchase Price (1 oz): <span>1023</span> BHD</p>
         <p class="purchase">Purchase Price (20g): <span>661</span> BHD</p>
         <p class="result" id="profitLoss">Calculating...</p>
-
-        <h2>Profit History (Last 20 Records)</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>Timestamp</th>
-                    <th>Profit (1 oz)</th>
-                    <th>Profit (20g)</th>
-                    <th>Total Profit</th>
-                </tr>
-            </thead>
-            <tbody id="profitHistory">
-                <tr><td colspan="4">No records yet.</td></tr>
-            </tbody>
-        </table>
     </div>
 
     <script>
@@ -83,29 +55,34 @@
                     throw new Error(`HTTP error! Status: ${response.status}`);
                 }
                 const data = await response.json();
+                console.log('Fetched data:', data);
 
-                document.getElementById('goldOz').textContent = data.gold_oz.toFixed(2);
-                document.getElementById('gold20g').textContent = data.gold_20g.toFixed(2);
-
-                const profitHistoryTable = document.getElementById('profitHistory');
-                profitHistoryTable.innerHTML = '';
-
-                if (data.profit_archive.length > 0) {
-                    data.profit_archive.forEach(record => {
-                        const row = `<tr>
-                            <td>${record.timestamp}</td>
-                            <td class="${record.profit_loss_oz >= 0 ? 'profit' : 'loss'}">${record.profit_loss_oz.toFixed(2)} BHD</td>
-                            <td class="${record.profit_loss_20g >= 0 ? 'profit' : 'loss'}">${record.profit_loss_20g.toFixed(2)} BHD</td>
-                            <td class="${record.total_profit_loss >= 0 ? 'profit' : 'loss'}">${record.total_profit_loss.toFixed(2)} BHD</td>
-                        </tr>`;
-                        profitHistoryTable.innerHTML += row;
-                    });
+                // تحديث أسعار الذهب
+                if (!isNaN(data.gold_oz)) {
+                    document.getElementById('goldOz').textContent = data.gold_oz.toFixed(2);
                 } else {
-                    profitHistoryTable.innerHTML = '<tr><td colspan="4">No records yet.</td></tr>';
+                    document.getElementById('goldOz').textContent = 'N/A';
+                }
+
+                if (!isNaN(data.gold_20g)) {
+                    document.getElementById('gold20g').textContent = data.gold_20g.toFixed(2);
+                } else {
+                    document.getElementById('gold20g').textContent = 'N/A';
+                }
+
+                // إزالة رسالة الخطأ
+                const messageElement = document.getElementById('message');
+                if (messageElement) {
+                    messageElement.textContent = '';
                 }
             } catch (error) {
                 console.error('Error fetching gold prices:', error);
-                document.getElementById('profitLoss').textContent = 'Failed to load prices.';
+
+                // عرض رسالة الخطأ
+                const messageElement = document.getElementById('message');
+                if (messageElement) {
+                    messageElement.textContent = 'Failed to load prices.';
+                }
             }
         }
 
